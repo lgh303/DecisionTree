@@ -13,12 +13,17 @@ public:
 	 Engine();
 	 void init_attr_descriptor(const std::string&);
 	 void init_record(const std::string&);
-	 Node* build_node(std::vector<int>&);
+	 void build_tree();
 	 ~Engine();
+	 Node* root;
 private:
 	 std::vector<Record*> records;
 	 std::vector<AttrDescriptor*> attr_descriptors;
-	 AttrDescriptor goal_descriptor;
+	 AttrDescriptor* goal_descriptor;
+	 Node* build_node(const std::vector<int>&, int, int);
+	 std::vector<int> attr_set_indexes;
+	 int attr_set_count;
+	 double entropy(int, int);
 };
 
 #endif //__ENGINE_H__
