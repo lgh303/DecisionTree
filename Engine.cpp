@@ -88,12 +88,14 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 	 {
 		  Node *node = new Node(goal_descriptor);
 		  node->goal_value = 1;
+		  node->count = count_1;
 		  return node;
 	 }
 	 if (count_1 == 0)
 	 {
 		  Node *node = new Node(goal_descriptor);
 		  node->goal_value = 0;
+		  node->count = count_0;
 		  return node;
 	 }
 	 if (attr_set_count == 0 || depth == MAX_DEPTH)
@@ -103,6 +105,7 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 			   node->goal_value = 0;
 		  else
 			   node->goal_value = 1;
+		  node->count = count_0 + count_1;
 		  return node;
 	 }
 
@@ -214,6 +217,7 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 	 assert(chosen_attr_index != -1);
 	 
 	 Node* node = new Node(attr_descriptors[chosen_attr_index]);
+	 node->count = count_0 + count_1;
 	 if (node->attr_descriptor->continuous)
 		  node->threshold = threshold_save;
 	 for (int i = 0; i < index_sets_save.size(); ++i)
@@ -301,11 +305,21 @@ int Engine::predict(Record* record)
 		  if (attr_desc->continuous)
 		  {
 			   int x = atoi(attr.c_str());
-			   if (x == 0 && attr != "0") assert(attr == "?");
-			   if (x < node->threshold)
-					node = node->children[0];
+			   if (x == 0 && attr != "0")
+			   {
+					assert(attr == "?");
+					if (node->children[0]->count > node->children[1]->count)
+						 node = node->children[0];
+					else
+						 node = node->children[1];
+			   }
 			   else
-					node = node->children[1];
+			   {
+					if (x < node->threshold)
+						 node = node->children[0];
+					else
+						 node = node->children[1];
+			   }
 		  }
 		  else
 		  {
@@ -320,7 +334,15 @@ int Engine::predict(Record* record)
 			   if (!found)
 			   {
 					assert(attr == "?");
-					node = node->children[0];
+					int max_count = 0;
+					int max_index = -1;
+					for (int i = 0; i < node->children.size(); ++i)
+						 if (node->children[i]->count > max_count)
+						 {
+							  max_count = node->children[i]->count;
+							  max_index = i;
+						 }
+					node = node->children[max_index];
 			   }
 		  }
 	 }

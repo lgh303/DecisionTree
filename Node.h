@@ -18,6 +18,7 @@ public:
 	 std::vector<Node*> children;
 	 double threshold; // used for continuous attr
 	 int goal_value; // used for goal attr
+	 int count;
 	 ~Node()
 	 {
 		  for (int i = 0; i < children.size(); ++i)
