@@ -9,6 +9,7 @@
 #include <fstream>
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 #include <algorithm>
 
 using namespace std;
@@ -16,10 +17,9 @@ using namespace std;
 extern string GOAL_0;
 extern string GOAL_1;
 
-vector<int> sort_index_keys;
-bool compare(const int& i, const int& j)
+bool compare(const pair<int, int>& p1, const pair<int, int>& p2)
 {
-	 return sort_index_keys[i] < sort_index_keys[j];
+	 return p1.second < p2.second;
 }
 
 Engine::Engine()
@@ -126,47 +126,44 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 
 			   if (attr_desc_ptr->continuous)
 			   {
-					sort_index_keys.clear();
-					vector<int> record_indexes_sorted;
+					vector< pair<int, int> > record_indexes_sorted;
 					for (int j = 0; j < record_indexes.size(); ++j)
 					{
 						 string attr = records[record_indexes[j]]->attrs[i];
 						 if (attr != "?")
-						 {
-							  sort_index_keys.push_back(atoi(attr.c_str()));
-							  record_indexes_sorted.push_back(record_indexes[j]);
-						 }
+							  record_indexes_sorted.push_back(make_pair(record_indexes[j], atoi(attr.c_str())));
 					}
-					sort(record_indexes_sorted.begin(), record_indexes_sorted.end(), compare);
-					
-					int refresh_count = 0;
-					for (int j = 1; j < record_indexes_sorted.size(); ++j)
-					{
-						 if (records[record_indexes_sorted[j]]->goal != records[record_indexes_sorted[j - 1]]->goal)
-						 {
-							  double threshold_tmp = 0.5 * (sort_index_keys[j] + sort_index_keys[j - 1]);
-							  vector< vector<int> > index_sets_tmp;
-							  vector<int> count_0_sets_tmp, count_1_sets_tmp;
-							  vector<int> index_set_1, index_set_2;
-							  for (int k = 0; k < j; ++k)
-								   index_set_1.push_back(record_indexes_sorted[k]);
-							  for (int k = j; k < record_indexes_sorted.size(); ++k)
-								   index_set_2.push_back(record_indexes_sorted[k]);
-							  index_sets_tmp.push_back(index_set_1);
-							  index_sets_tmp.push_back(index_set_2);
 
-							  double new_entropy = calc_new_entropy(index_sets_tmp, record_indexes_sorted.size(), count_0_sets_tmp, count_1_sets_tmp);
-							  if (new_entropy < best_entropy)
-							  {
-								   best_entropy = new_entropy;
-								   threshold = threshold_tmp;
-								   index_sets = index_sets_tmp;
-								   count_0_sets = count_0_sets_tmp;
-								   count_1_sets = count_1_sets_tmp;
-								   ++refresh_count;
-								   if (refresh_count > MAX_CONTINUOUS_REF_TIME)
-										break;
-							  }
+					sort(record_indexes_sorted.begin(), record_indexes_sorted.end(), compare);
+
+					vector<int> split_pos;
+					for (int j = 1; j < record_indexes_sorted.size(); ++j)
+						 if (records[record_indexes_sorted[j].first]->goal != records[record_indexes_sorted[j - 1].first]->goal)
+							  split_pos.push_back(j);
+
+					for (int t = 0; t < MAX_CONTINUOUS_REF_TIME; ++t)
+					{
+						 int j = split_pos[rand() % split_pos.size()];
+
+						 double threshold_tmp = 0.5 * (record_indexes_sorted[j].second + record_indexes_sorted[j - 1].second);
+						 vector< vector<int> > index_sets_tmp;
+						 vector<int> count_0_sets_tmp, count_1_sets_tmp;
+						 vector<int> index_set_1, index_set_2;
+						 for (int k = 0; k < j; ++k)
+							  index_set_1.push_back(record_indexes_sorted[k].first);
+						 for (int k = j; k < record_indexes_sorted.size(); ++k)
+							  index_set_2.push_back(record_indexes_sorted[k].first);
+						 index_sets_tmp.push_back(index_set_1);
+						 index_sets_tmp.push_back(index_set_2);
+
+						 double new_entropy = calc_new_entropy(index_sets_tmp, record_indexes_sorted.size(), count_0_sets_tmp, count_1_sets_tmp);
+						 if (new_entropy < best_entropy)
+						 {
+							  best_entropy = new_entropy;
+							  threshold = threshold_tmp;
+							  index_sets = index_sets_tmp;
+							  count_0_sets = count_0_sets_tmp;
+							  count_1_sets = count_1_sets_tmp;
 						 }
 					}
 			   }
@@ -214,21 +211,40 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 			   }
 		  }
 
-	 assert(chosen_attr_index != -1);
+	 if (chosen_attr_index == -1)
+	 {
+		  Node *node = new Node(goal_descriptor);
+		  if (count_0 > count_1)
+			   node->goal_value = 0;
+		  else
+			   node->goal_value = 1;
+		  node->count = count_0 + count_1;
+		  return node;
+	 }
+
+	 if (chosen_attr_index == 0)
+	 {
+		  int x = 0;
+	 }
+		  
 	 
 	 Node* node = new Node(attr_descriptors[chosen_attr_index]);
 	 node->count = count_0 + count_1;
+
 	 if (node->attr_descriptor->continuous)
 		  node->threshold = threshold_save;
+
+	 attr_set_indexes[chosen_attr_index] = 0;
+	 attr_set_count--;
+
 	 for (int i = 0; i < index_sets_save.size(); ++i)
 	 {
-		  attr_set_indexes[chosen_attr_index] = 0;
-		  attr_set_count--;
 		  Node* child = build_node(depth + 1, index_sets_save[i], count_0_sets_save[i], count_1_sets_save[i]);
-		  attr_set_count++;
-		  attr_set_indexes[chosen_attr_index] = 1;
 		  node->children.push_back(child);
 	 }
+
+	 attr_set_indexes[chosen_attr_index] = 1;
+	 attr_set_count++;
 
 	 return node;
 }

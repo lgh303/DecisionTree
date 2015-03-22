@@ -7,6 +7,9 @@
 
 #include <iostream>
 
+extern std::string GOAL_0;
+extern std::string GOAL_1;
+
 class Node
 {
 public:
@@ -30,21 +33,35 @@ public:
 		  for (int i = 0; i < indent_count; ++i)
 			   std::cout << '\t';
 		  if (attr_descriptor->goal)
-			   std::cout << goal_value << std::endl;
-		  else
-			   std::cout << attr_descriptor->name << std::endl;
-
-		  for (int i = 0; i < indent_count; ++i)
-			   std::cout << '\t';
-		  if (attr_descriptor->continuous)
-			   std::cout << threshold << std::endl;
-
-		  for (int i = 0; i < children.size(); ++i)
 		  {
-			   for (int j = 0; j < indent_count; ++j)
+			   if (goal_value == 0)
+					std::cout << GOAL_0 << std::endl;
+			   else
+					std::cout << GOAL_1 << std::endl;
+		  }
+		  else
+			   std::cout << '(' << attr_descriptor->name << ')' << std::endl;
+
+		  if (attr_descriptor->continuous)
+		  {
+			   for (int i = 0; i < indent_count; ++i)
 					std::cout << '\t';
-			   std::cout << "<-" << attr_descriptor->enum_values[i] << "->" << std::endl;
-			   children[i]->print(indent_count + 1);
+			   std::cout << "<-" << threshold << std::endl;
+			   children[0]->print(indent_count + 1);
+			   for (int i = 0; i < indent_count; ++i)
+					std::cout << '\t';
+			   std::cout << threshold << "->" << std::endl;
+			   children[1]->print(indent_count + 1);
+		  }
+		  else
+		  {
+			   for (int i = 0; i < children.size(); ++i)
+			   {
+					for (int j = 0; j < indent_count; ++j)
+						 std::cout << '\t';
+					std::cout << "<-" << attr_descriptor->enum_values[i] << "->" << std::endl;
+					children[i]->print(indent_count + 1);
+			   }
 		  }
 	 }
 };

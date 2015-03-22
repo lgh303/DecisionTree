@@ -12,8 +12,8 @@ using std::vector;
 class Engine
 {
 public:
-	 const static int MAX_DEPTH = 4;
-	 const static int MAX_CONTINUOUS_REF_TIME = 1;
+	 const static int MAX_DEPTH = 1000;
+	 const static int MAX_CONTINUOUS_REF_TIME = 6;
 	 Engine();
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
