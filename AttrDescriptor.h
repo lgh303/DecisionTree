@@ -12,8 +12,9 @@ using std::endl;
 class AttrDescriptor
 {
 public:
-	 AttrDescriptor(const string& line, bool is_goal = false)
+	 AttrDescriptor(const string& line, int _index, bool is_goal = false)
 	 {
+		  index = _index;
 		  goal = is_goal;
 		  if (is_goal)
 		  {
@@ -45,6 +46,7 @@ public:
 	 bool goal;
 	 string name;
 	 bool continuous;
+	 int index;
 	 std::vector<string> enum_values;
 
 	 void print()

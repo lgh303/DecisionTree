@@ -20,8 +20,8 @@ int main()
 	 engine->init_attr_descriptor(attr_descriptor_filename);
 	 engine->load_train_data(train_filename);
 	 engine->build_tree();
-	 engine->root->print(0);
-	 engine->load_test_data(test_filename);
-	 double accur = engine->test();
+//	 engine->root->print(0);
+	 double accur = engine->test(test_filename);
+	 cout << accur << endl;
 	 delete engine;
 }

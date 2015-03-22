@@ -18,8 +18,8 @@ public:
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
 	 void build_tree();
-	 void load_test_data(const std::string&);
-	 double test();
+	 double test(const std::string&);
+	 int predict(Record*);
 	 ~Engine();
 	 Node* root;
 private:

@@ -32,6 +32,7 @@ void Engine::init_attr_descriptor(const string& filename)
 {
 	 ifstream fin(filename.c_str());
 	 string line;
+	 int count = -1;
 	 while (fin)
 	 {
 		  getline(fin, line);
@@ -39,12 +40,13 @@ void Engine::init_attr_descriptor(const string& filename)
 		  if (line.size() <= 0) continue;
 		  if (!goal_descriptor)
 		  {
-			   goal_descriptor = new AttrDescriptor(line, true);
+			   goal_descriptor = new AttrDescriptor(line, -1, true);
 			   GOAL_0 = goal_descriptor->enum_values[0];
 			   GOAL_1 = goal_descriptor->enum_values[1];
 			   continue;
 		  }
-		  AttrDescriptor* desc = new AttrDescriptor(line);
+		  ++count;
+		  AttrDescriptor* desc = new AttrDescriptor(line, count);
 		  attr_descriptors.push_back(desc);
 		  attr_set_indexes.push_back(1);
 	 }
@@ -214,7 +216,7 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 	 Node* node = new Node(attr_descriptors[chosen_attr_index]);
 	 if (node->attr_descriptor->continuous)
 		  node->threshold = threshold_save;
-	 for (int i = 0; i < node->attr_descriptor->enum_values.size(); ++i)
+	 for (int i = 0; i < index_sets_save.size(); ++i)
 	 {
 		  attr_set_indexes[chosen_attr_index] = 0;
 		  attr_set_count--;
@@ -268,12 +270,58 @@ double Engine::calc_new_entropy(const vector< vector<int> > &index_sets, int rec
 	 return new_entropy;
 }
 
-void Engine::load_test_data(const std::string& filename)
+double Engine::test(const std::string& filename)
 {
-
+	 int total_count = 0, accur_count = 0;
+	 ifstream fin(filename.c_str());
+	 string line;
+	 while (fin)
+	 {
+		  getline(fin, line);
+		  if (line.size() <= 0) continue;
+		  ++total_count;
+		  Record* rec = new Record(line);
+		  if (predict(rec) == rec->goal)
+			   ++accur_count;
+		  delete rec;
+	 }
+	 fin.close();
+	 return (double)accur_count / (double)total_count;
 }
 
-double Engine::test()
+int Engine::predict(Record* record)
 {
-	 return 0;
+	 Node *node = root;
+	 while (true)
+	 {
+		  AttrDescriptor* attr_desc = node->attr_descriptor;
+		  if (attr_desc->goal)
+			   return node->goal_value;
+		  string attr = record->attrs[attr_desc->index];
+		  if (attr_desc->continuous)
+		  {
+			   int x = atoi(attr.c_str());
+			   if (x == 0 && attr != "0") assert(attr == "?");
+			   if (x < node->threshold)
+					node = node->children[0];
+			   else
+					node = node->children[1];
+		  }
+		  else
+		  {
+			   bool found = false;
+			   for (int i = 0; i < attr_desc->enum_values.size(); ++i)
+					if (attr == attr_desc->enum_values[i])
+					{
+						 node = node->children[i];
+						 found = true;
+						 break;
+					}
+			   if (!found)
+			   {
+					assert(attr == "?");
+					node = node->children[0];
+			   }
+		  }
+	 }
 }
