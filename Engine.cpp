@@ -113,16 +113,32 @@ Node* Engine::build_node(const vector<int> &record_indexes, int count_0, int cou
 			   }
 			   else
 			   {
+					int max_enum_val_index = -1;
+					int max_enum_val_count = -1;
+					for (int j = 0; j < attr_desc_ptr->enum_values.size(); ++j)
+					{
+						 int enum_val_count = 0;
+						 for (int k = 0; k < record_indexes.size(); ++k)
+							  if (records[record_indexes[k]]->attrs[i] == attr_desc_ptr->enum_values[j])
+								   enum_val_count++;
+						 if (enum_val_count > max_enum_val_count)
+						 {
+							  max_enum_val_count = enum_val_count;
+							  max_enum_val_index = j;
+						 }
+					}
+
 					for (int j = 0; j < attr_desc_ptr->enum_values.size(); ++j)
 					{
 						 string enum_value = attr_desc_ptr->enum_values[j];
 						 vector<int> index_set;
 						 for (int k = 0; k < record_indexes.size(); ++k)
-							  if (records[record_indexes[k]]->attrs[i] == enum_value)
+							  if (records[record_indexes[k]]->attrs[i] == enum_value
+								  || (records[record_indexes[k]]->attrs[i] == "?" 
+									  && j == max_enum_val_index))
 								   index_set.push_back(record_indexes[k]);
 						 index_sets.push_back(index_set);
 					}
-					
 			   }
 
 			   double new_entropy = 0;
