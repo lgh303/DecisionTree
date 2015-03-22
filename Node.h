@@ -16,7 +16,7 @@ public:
 	 }
 	 AttrDescriptor *attr_descriptor;
 	 std::vector<Node*> children;
-	 int threshold; // used for continuous attr
+	 double threshold; // used for continuous attr
 	 int goal_value; // used for goal attr
 	 ~Node()
 	 {
@@ -32,6 +32,11 @@ public:
 			   std::cout << goal_value << std::endl;
 		  else
 			   std::cout << attr_descriptor->name << std::endl;
+
+		  for (int i = 0; i < indent_count; ++i)
+			   std::cout << '\t';
+		  if (attr_descriptor->continuous)
+			   std::cout << threshold << std::endl;
 
 		  for (int i = 0; i < children.size(); ++i)
 		  {
