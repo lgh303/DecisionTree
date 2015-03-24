@@ -109,7 +109,8 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 		  return node;
 	 }
 
-	 double max_gain = 0;
+//	 double max_gain = 0;
+	 double max_gain_ratio = 0;
 	 int chosen_attr_index = -1;
 	 vector< vector<int> > index_sets_save;
 	 vector<int> count_0_sets_save, count_1_sets_save;
@@ -123,6 +124,7 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 			   vector<int> count_0_sets, count_1_sets;
 			   double threshold = -1;
 			   double best_entropy = 1e100;
+			   double split_info;
 
 			   if (attr_desc_ptr->continuous)
 			   {
@@ -156,10 +158,12 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 						 index_sets_tmp.push_back(index_set_1);
 						 index_sets_tmp.push_back(index_set_2);
 
-						 double new_entropy = calc_new_entropy(index_sets_tmp, record_indexes_sorted.size(), count_0_sets_tmp, count_1_sets_tmp);
+						 double new_split_info;
+						 double new_entropy = calc_new_entropy(index_sets_tmp, record_indexes_sorted.size(), count_0_sets_tmp, count_1_sets_tmp, new_split_info);
 						 if (new_entropy < best_entropy)
 						 {
 							  best_entropy = new_entropy;
+							  split_info = new_split_info;
 							  threshold = threshold_tmp;
 							  index_sets = index_sets_tmp;
 							  count_0_sets = count_0_sets_tmp;
@@ -196,13 +200,18 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 						 index_sets.push_back(index_set);
 					}
 
-					best_entropy = calc_new_entropy(index_sets, record_indexes.size(), count_0_sets, count_1_sets);
+					best_entropy = calc_new_entropy(index_sets, record_indexes.size(), count_0_sets, count_1_sets, split_info);
 			   }
 
 			   double gain = entropy(count_0, count_1) - best_entropy;
-			   if (gain > max_gain)
+			   double gain_ratio = gain / split_info;
+
+//			   if (gain > max_gain)
+//			   {
+//					max_gain = gain;
+			   if (gain_ratio > max_gain_ratio)
 			   {
-					max_gain = gain;
+					max_gain_ratio = gain_ratio;
 					chosen_attr_index = i;
 					threshold_save = threshold;
 					index_sets_save = index_sets;
@@ -270,9 +279,11 @@ double Engine::entropy(int count_0, int count_1)
 	 return (-p0 * log(p0) - p1 * log(p1)) / log(2.0);
 }
 
-double Engine::calc_new_entropy(const vector< vector<int> > &index_sets, int record_size, vector<int>& count_0_sets, vector<int>& count_1_sets)
+double Engine::calc_new_entropy(const vector< vector<int> > &index_sets, int record_size, vector<int>& count_0_sets, vector<int>& count_1_sets, double& split_info)
 {
 	 double new_entropy = 0;
+	 split_info = 0;
+
 	 for (int j = 0; j < index_sets.size(); ++j)
 	 {
 		  int partial_size = index_sets[j].size();
@@ -286,7 +297,10 @@ double Engine::calc_new_entropy(const vector< vector<int> > &index_sets, int rec
 		  new_entropy += ratio * entropy(partial_count_0, partial_count_1);
 		  count_0_sets.push_back(partial_count_0);
 		  count_1_sets.push_back(partial_count_1);
+
+		  split_info -= ratio * log(ratio) / log(2.0);
 	 }
+	 
 	 return new_entropy;
 }
 

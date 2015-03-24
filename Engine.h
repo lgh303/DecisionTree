@@ -13,7 +13,7 @@ class Engine
 {
 public:
 	 const static int MAX_DEPTH = 1000;
-	 const static int MAX_CONTINUOUS_REF_TIME = 6;
+	 const static int MAX_CONTINUOUS_REF_TIME = 15;
 	 Engine();
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
@@ -30,7 +30,7 @@ private:
 	 std::vector<int> attr_set_indexes;
 	 int attr_set_count;
 	 double entropy(int, int);
-	 double calc_new_entropy(const vector< vector<int> >&, int, vector<int>&, vector<int>&);
+	 double calc_new_entropy(const vector< vector<int> >&, int, vector<int>&, vector<int>&, double&);
 
 };
 
