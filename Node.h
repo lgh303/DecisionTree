@@ -9,12 +9,14 @@
 
 extern std::string GOAL_0;
 extern std::string GOAL_1;
+extern int tree_size;
 
 class Node
 {
 public:
 	 Node(AttrDescriptor* ptr = NULL)
 	 {
+		  ++tree_size;
 		  attr_descriptor = ptr;
 	 }
 	 AttrDescriptor *attr_descriptor;
