@@ -12,8 +12,7 @@ using std::vector;
 class Engine
 {
 public:
-	 const static int MAX_DEPTH = 1000;
-	 const static int MAX_CONTINUOUS_REF_TIME = 15;
+	 const static int MAX_DEPTH = 100;
 	 Engine();
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
@@ -31,6 +30,7 @@ private:
 	 int attr_set_count;
 	 double entropy(int, int);
 	 double calc_new_entropy(const vector< vector<int> >&, int, vector<int>&, vector<int>&, double&);
+	 void set_threshold();
 
 };
 

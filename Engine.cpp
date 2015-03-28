@@ -70,6 +70,7 @@ void Engine::load_train_data(const string& filename)
 
 void Engine::build_tree()
 {
+	 set_threshold();
 	 vector<int> record_indexes;
 	 for (int i = 0; i < records.size(); ++i)
 		  record_indexes.push_back(i);
@@ -109,12 +110,10 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 		  return node;
 	 }
 
-//	 double max_gain = 0;
 	 double max_gain_ratio = 0;
 	 int chosen_attr_index = -1;
 	 vector< vector<int> > index_sets_save;
 	 vector<int> count_0_sets_save, count_1_sets_save;
-	 double threshold_save;
 
 	 for (int i = 0; i < attr_set_indexes.size(); ++i)
 		  if (attr_set_indexes[i] == 1)
@@ -122,54 +121,24 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 			   AttrDescriptor* attr_desc_ptr = attr_descriptors[i];
 			   vector< vector<int> > index_sets;
 			   vector<int> count_0_sets, count_1_sets;
-			   double threshold = -1;
 			   double best_entropy = 1e100;
 			   double split_info;
 
 			   if (attr_desc_ptr->continuous)
 			   {
-					vector< pair<int, int> > record_indexes_sorted;
+					vector<int> index_set_below;
+					vector<int> index_set_above;
 					for (int j = 0; j < record_indexes.size(); ++j)
 					{
 						 string attr = records[record_indexes[j]]->attrs[i];
-						 if (attr != "?")
-							  record_indexes_sorted.push_back(make_pair(record_indexes[j], atoi(attr.c_str())));
+						 int attr_value = atoi(attr.c_str());
+						 if (attr_value <= attr_desc_ptr->threshold)
+							  index_set_below.push_back(record_indexes[j]);
+						 else
+							  index_set_above.push_back(record_indexes[j]);
 					}
-
-					sort(record_indexes_sorted.begin(), record_indexes_sorted.end(), compare);
-
-					vector<int> split_pos;
-					for (int j = 1; j < record_indexes_sorted.size(); ++j)
-						 if (records[record_indexes_sorted[j].first]->goal != records[record_indexes_sorted[j - 1].first]->goal)
-							  split_pos.push_back(j);
-
-					for (int t = 0; t < MAX_CONTINUOUS_REF_TIME; ++t)
-					{
-						 int j = split_pos[rand() % split_pos.size()];
-
-						 double threshold_tmp = 0.5 * (record_indexes_sorted[j].second + record_indexes_sorted[j - 1].second);
-						 vector< vector<int> > index_sets_tmp;
-						 vector<int> count_0_sets_tmp, count_1_sets_tmp;
-						 vector<int> index_set_1, index_set_2;
-						 for (int k = 0; k < j; ++k)
-							  index_set_1.push_back(record_indexes_sorted[k].first);
-						 for (int k = j; k < record_indexes_sorted.size(); ++k)
-							  index_set_2.push_back(record_indexes_sorted[k].first);
-						 index_sets_tmp.push_back(index_set_1);
-						 index_sets_tmp.push_back(index_set_2);
-
-						 double new_split_info;
-						 double new_entropy = calc_new_entropy(index_sets_tmp, record_indexes_sorted.size(), count_0_sets_tmp, count_1_sets_tmp, new_split_info);
-						 if (new_entropy < best_entropy)
-						 {
-							  best_entropy = new_entropy;
-							  split_info = new_split_info;
-							  threshold = threshold_tmp;
-							  index_sets = index_sets_tmp;
-							  count_0_sets = count_0_sets_tmp;
-							  count_1_sets = count_1_sets_tmp;
-						 }
-					}
+					index_sets.push_back(index_set_below);
+					index_sets.push_back(index_set_above);
 			   }
 			   else
 			   {
@@ -199,21 +168,18 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 								   index_set.push_back(record_indexes[k]);
 						 index_sets.push_back(index_set);
 					}
-
-					best_entropy = calc_new_entropy(index_sets, record_indexes.size(), count_0_sets, count_1_sets, split_info);
 			   }
 
+			   best_entropy = calc_new_entropy(index_sets, record_indexes.size(),
+											   count_0_sets, count_1_sets, split_info);
 			   double gain = entropy(count_0, count_1) - best_entropy;
-			   double gain_ratio = gain / split_info;
+//			   double gain_ratio = gain / split_info;
+			   double gain_ratio = gain;
 
-//			   if (gain > max_gain)
-//			   {
-//					max_gain = gain;
 			   if (gain_ratio > max_gain_ratio)
 			   {
 					max_gain_ratio = gain_ratio;
 					chosen_attr_index = i;
-					threshold_save = threshold;
 					index_sets_save = index_sets;
 					count_0_sets_save = count_0_sets;
 					count_1_sets_save = count_1_sets;
@@ -231,17 +197,8 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 		  return node;
 	 }
 
-	 if (chosen_attr_index == 0)
-	 {
-		  int x = 0;
-	 }
-		  
-	 
 	 Node* node = new Node(attr_descriptors[chosen_attr_index]);
 	 node->count = count_0 + count_1;
-
-	 if (node->attr_descriptor->continuous)
-		  node->threshold = threshold_save;
 
 	 attr_set_indexes[chosen_attr_index] = 0;
 	 attr_set_count--;
@@ -345,7 +302,7 @@ int Engine::predict(Record* record)
 			   }
 			   else
 			   {
-					if (x < node->threshold)
+					if (x <= attr_desc->threshold)
 						 node = node->children[0];
 					else
 						 node = node->children[1];
@@ -376,4 +333,54 @@ int Engine::predict(Record* record)
 			   }
 		  }
 	 }
+}
+
+void Engine::set_threshold()
+{
+	 for (int i = 0; i < attr_descriptors.size(); ++i)
+		  if (attr_descriptors[i]->continuous)
+		  {
+			   int total_count_0 = 0;
+			   vector< pair<int, int> > record_indexes_sorted;
+			   for (int j = 0; j < records.size(); ++j)
+			   {
+					string attr = records[j]->attrs[i];
+					if (attr != "?")
+					{
+						 record_indexes_sorted.push_back(make_pair(j, atoi(attr.c_str())));
+						 if (records[j]->goal == 0) ++total_count_0;
+					}
+			   }
+			   double old_entropy = entropy(total_count_0, record_indexes_sorted.size() - total_count_0);
+			   sort(record_indexes_sorted.begin(), record_indexes_sorted.end(), compare);
+			   int count_0 = 0;
+			   double max_gain_ratio = 0;
+			   double best_threshold;
+			   for (int j = 0; j < record_indexes_sorted.size() - 1; ++j)
+			   {
+					if (records[record_indexes_sorted[j].first]->goal == 0)
+						 ++count_0;
+					if (records[record_indexes_sorted[j].first]->goal != 
+						records[record_indexes_sorted[j + 1].first]->goal)
+					{
+						 double threshold = 0.5 * (record_indexes_sorted[j].second + 
+												   record_indexes_sorted[j + 1].second);
+						 int count_0_left = total_count_0 - count_0;
+						 int count_1 = j + 1 - count_0;
+						 int count_1_left = record_indexes_sorted.size() - total_count_0 - count_1;
+						 double ratio = (double)(j + 1) / (double)record_indexes_sorted.size();
+						 double gain = old_entropy - (ratio * entropy(count_0, count_1) + 
+													  (1 - ratio) * entropy(count_0_left, count_1_left));
+						 double split_info = - (ratio * log(ratio) + (1 - ratio) * log(1 - ratio)) / log(2.0);
+						 double gain_ratio = gain / split_info;
+						 if (gain_ratio > max_gain_ratio)
+						 {
+							  max_gain_ratio = gain_ratio;
+							  best_threshold = threshold;
+						 }
+					}
+			   }
+			   attr_descriptors[i]->threshold = best_threshold;
+			   cout << attr_descriptors[i]->name << " : " << best_threshold << ' ' << max_gain_ratio << endl;
+		  }
 }

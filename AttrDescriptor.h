@@ -46,6 +46,7 @@ public:
 	 bool goal;
 	 string name;
 	 bool continuous;
+	 double threshold;
 	 int index;
 	 std::vector<string> enum_values;
 

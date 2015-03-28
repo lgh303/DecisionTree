@@ -21,7 +21,6 @@ public:
 	 }
 	 AttrDescriptor *attr_descriptor;
 	 std::vector<Node*> children;
-	 double threshold; // used for continuous attr
 	 int goal_value; // used for goal attr
 	 int count;
 	 ~Node()
@@ -48,11 +47,11 @@ public:
 		  {
 			   for (int i = 0; i < indent_count; ++i)
 					std::cout << '\t';
-			   std::cout << "<-" << threshold << std::endl;
+			   std::cout << "<-" << attr_descriptor->threshold << std::endl;
 			   children[0]->print(indent_count + 1);
 			   for (int i = 0; i < indent_count; ++i)
 					std::cout << '\t';
-			   std::cout << threshold << "->" << std::endl;
+			   std::cout << attr_descriptor->threshold << "->" << std::endl;
 			   children[1]->print(indent_count + 1);
 		  }
 		  else
