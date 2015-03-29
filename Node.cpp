@@ -36,7 +36,7 @@ int Node::size()
 	 int ret = 0;
 	 for (int i = 0; i < children.size(); ++i)
 		  ret += children[i]->size();
-	 return ret;
+	 return ret + 1;
 }
 
 void Node::print(int indent_count)

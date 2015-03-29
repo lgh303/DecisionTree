@@ -12,8 +12,6 @@ using std::vector;
 class Engine
 {
 public:
-	 const static int MAX_DEPTH = 100;
-
 	 Node* root;
 
 	 Engine();

@@ -51,13 +51,13 @@ void task(int percent)
 		  engine->load_train_data(TRAIN_FILE, percent);
 		  engine->build_tree();
 
-		  accur = engine->test(TEST_FILE);
+		  accur = engine->test(TRAIN_FILE);
 		  out("Before Pruning : ", accur, engine->root->size());
 		  min_max_avr(accur, min_before, max_before, avr_before);
 
 		  engine->pessimistic_error_prune(engine->root);
 
-		  accur = engine->test(TEST_FILE);
+		  accur = engine->test(TRAIN_FILE);
 		  out("After  Pruning : ", accur, engine->root->size());
 		  min_max_avr(accur, min_after, max_after, avr_after);
 
