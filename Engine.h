@@ -17,6 +17,7 @@ public:
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
 	 void build_tree();
+	 void pessimistic_error_prune(Node*);
 	 double test(const std::string&);
 	 int predict(Record*);
 	 ~Engine();
@@ -31,7 +32,7 @@ private:
 	 double entropy(int, int);
 	 double calc_new_entropy(const vector< vector<int> >&, int, vector<int>&, vector<int>&, double&);
 	 void set_threshold();
-
+	 bool on_prune_condition(Node*);
 };
 
 #endif //__ENGINE_H__

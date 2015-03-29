@@ -85,28 +85,10 @@ void Engine::build_tree()
 
 Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count_0, int count_1)
 {
-	 if (count_0 == 0)
+	 if (count_0 == 0 || count_1 == 0 
+		 || attr_set_count == 0)
 	 {
-		  Node *node = new Node(goal_descriptor);
-		  node->goal_value = 1;
-		  node->count = count_1;
-		  return node;
-	 }
-	 if (count_1 == 0)
-	 {
-		  Node *node = new Node(goal_descriptor);
-		  node->goal_value = 0;
-		  node->count = count_0;
-		  return node;
-	 }
-	 if (attr_set_count == 0 || depth == MAX_DEPTH)
-	 {
-		  Node *node = new Node(goal_descriptor);
-		  if (count_0 > count_1)
-			   node->goal_value = 0;
-		  else
-			   node->goal_value = 1;
-		  node->count = count_0 + count_1;
+		  Node *node = new Node(goal_descriptor, count_0, count_1);
 		  return node;
 	 }
 
@@ -173,8 +155,8 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 			   best_entropy = calc_new_entropy(index_sets, record_indexes.size(),
 											   count_0_sets, count_1_sets, split_info);
 			   double gain = entropy(count_0, count_1) - best_entropy;
-//			   double gain_ratio = gain / split_info;
-			   double gain_ratio = gain;
+			   double gain_ratio = gain / split_info;
+//			   double gain_ratio = gain;
 
 			   if (gain_ratio > max_gain_ratio)
 			   {
@@ -188,17 +170,11 @@ Node* Engine::build_node(int depth, const vector<int> &record_indexes, int count
 
 	 if (chosen_attr_index == -1)
 	 {
-		  Node *node = new Node(goal_descriptor);
-		  if (count_0 > count_1)
-			   node->goal_value = 0;
-		  else
-			   node->goal_value = 1;
-		  node->count = count_0 + count_1;
+		  Node *node = new Node(goal_descriptor, count_0, count_1);
 		  return node;
 	 }
 
-	 Node* node = new Node(attr_descriptors[chosen_attr_index]);
-	 node->count = count_0 + count_1;
+	 Node* node = new Node(attr_descriptors[chosen_attr_index], count_0, count_1);
 
 	 attr_set_indexes[chosen_attr_index] = 0;
 	 attr_set_count--;
@@ -381,6 +357,34 @@ void Engine::set_threshold()
 					}
 			   }
 			   attr_descriptors[i]->threshold = best_threshold;
-			   cout << attr_descriptors[i]->name << " : " << best_threshold << ' ' << max_gain_ratio << endl;
 		  }
+}
+
+void Engine::pessimistic_error_prune(Node* node)
+{
+	 if (node->attr_descriptor->goal)
+		  return;
+	 for (int i = 0; i < node->children.size(); ++i)
+		  pessimistic_error_prune(node->children[i]);
+
+	 node->leaf_err_collected = 0;
+	 for (int i = 0; i < node->children.size(); ++i)
+		  node->leaf_err_collected += node->children[i]->leaf_err_collected;
+	 if (on_prune_condition(node))
+	 {
+	 	  node->attr_descriptor = goal_descriptor;
+		  node->leaf_err_collected = node->error_count + 0.5;
+		  for (int i = 0; i < node->children.size(); ++i)
+			   delete node->children[i];
+		  node->children.clear();
+	 }
+}
+
+bool Engine::on_prune_condition(Node* node)
+{
+	 double err_t = node->error_count + 0.5;
+	 double err_T = node->leaf_err_collected;
+	 double n_t = node->count;
+	 double se_err_T = sqrt(err_T * (n_t - err_T) / n_t);
+	 return err_t <= err_T + se_err_T;
 }

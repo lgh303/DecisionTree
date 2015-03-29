@@ -12,9 +12,11 @@ const string ATTR_DESCRIPTOR_FILE = "data/adult.names";
 
 const string TRAIN_FILE = "data/adult.data";
 const string TEST_FILE = "data/adult.test";
+const string BLACK_BOX_FEATURES = "data/test.features";
+const string BLACK_BOX_RESULT_STD = "data/test.result.example";
+const string BLACK_BOX_RESULT_OUT = "2012011303.result.example";
 
 string GOAL_0, GOAL_1;
-int tree_size = 0;
 
 int main(int argc, char** argv)
 {
@@ -44,7 +46,14 @@ int main(int argc, char** argv)
 	 engine->load_train_data(TRAIN_FILE);
 	 engine->build_tree();
 //	 engine->root->print(0);
+
 	 double accur = engine->test(test_filename);
-	 cout << accur << ' ' << tree_size << endl;
+	 cout << accur << ' ' << engine->root->size() << endl;
+
+	 engine->pessimistic_error_prune(engine->root);
+
+	 accur = engine->test(test_filename);
+	 cout << accur << ' ' << engine->root->size() << endl;
+
 	 delete engine;
 }
