@@ -54,7 +54,7 @@ void Engine::init_attr_descriptor(const string& filename)
 	 attr_set_count = attr_set_indexes.size();
 }
 
-void Engine::load_train_data(const string& filename)
+void Engine::load_train_data(const string& filename, int percent)
 {
 	 ifstream fin(filename.c_str());
 	 string line;
@@ -62,8 +62,11 @@ void Engine::load_train_data(const string& filename)
 	 {
 		  getline(fin, line);
 		  if (line.size() <= 0) continue;
-		  Record* rec = new Record(line);
-		  records.push_back(rec);
+		  if (rand() % 100 < percent)
+		  {
+			   Record* rec = new Record(line);
+			   records.push_back(rec);
+		  }
 	 }
 	 fin.close();
 }

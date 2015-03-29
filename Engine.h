@@ -19,7 +19,7 @@ public:
 	 Engine();
 
 	 void init_attr_descriptor(const std::string&);
-	 void load_train_data(const std::string&);
+	 void load_train_data(const std::string&, int);
 
 	 void build_tree();
 	 void pessimistic_error_prune(Node*);

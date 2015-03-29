@@ -17,49 +17,85 @@ const string BLACK_BOX_RESULT_OUT = "2012011303.test.result";
 
 string GOAL_0, GOAL_1;
 
+void out(const string& message, double accur, int size)
+{
+	 cout << "\t\t" << message;
+	 cout << "Accuracy = " << accur << " && ";
+	 cout << "Tree Size = " << size << endl;
+}
+
+void min_max_avr(double accur, double& min, double& max, double& avr)
+{
+	 if (accur < min) min = accur;
+	 if (accur > max) max = accur;
+	 avr += accur;
+}
+
+void task(int percent)
+{
+	 cout  << percent << "% of training set..." << endl;
+
+	 int rounds = 1;
+	 if (percent != 100) rounds = 5;
+
+	 double min_before = 1, max_before = 0, avr_before = 0;
+	 double min_after = 1, max_after = 0, avr_after = 0;
+
+	 for (int i = 0; i < rounds; ++i)
+	 {
+		  cout << "\tRound " << i + 1 << endl;
+		  double accur;
+
+		  Engine* engine = new Engine;
+		  engine->init_attr_descriptor(ATTR_DESCRIPTOR_FILE);
+		  engine->load_train_data(TRAIN_FILE, percent);
+		  engine->build_tree();
+
+		  accur = engine->test(TEST_FILE);
+		  out("Before Pruning : ", accur, engine->root->size());
+		  min_max_avr(accur, min_before, max_before, avr_before);
+
+		  engine->pessimistic_error_prune(engine->root);
+
+		  accur = engine->test(TEST_FILE);
+		  out("After  Pruning : ", accur, engine->root->size());
+		  min_max_avr(accur, min_after, max_after, avr_after);
+
+		  cout << endl;
+
+		  if (percent == 100)
+		  {
+			   engine->test_blackbox(BLACK_BOX_FEATURES, BLACK_BOX_RESULT_OUT);
+//			   engine->root->print(0);
+		  }
+
+		  delete engine;
+	 }
+
+	 cout << "\tMaximum : " << endl;
+	 cout << "\t\tBefore Pruning : " << max_before <<endl;
+	 cout << "\t\tAfter  Pruning : " << max_after <<endl;
+
+	 cout << "\tMinimum : " << endl;
+	 cout << "\t\tBefore Pruning : " << min_before <<endl;
+	 cout << "\t\tAfter  Pruning : " << min_after <<endl;
+
+	 cout << "\tAverage : " << endl;
+	 cout << "\t\tBefore Pruning : " << avr_before / rounds <<endl;
+	 cout << "\t\tAfter  Pruning : " << avr_after / rounds <<endl;
+
+	 cout << endl;
+
+	 if (percent == 100)
+		  cout << BLACK_BOX_RESULT_OUT << " Generated." << endl;
+	 cout << endl;
+}
+
 int main(int argc, char** argv)
 {
-	 if (argc < 2)
-	 {
-		  cerr << "Usage : ./main OPTION" << endl;
-		  cerr << "options:" << endl;
-		  cerr << "\t--test : use adult.test to test" << endl;
-		  cerr << "\t--train : use adult.train to test" << endl;
-		  return 0;
-	 }
-
-	 string test_filename;
-	 if (string(argv[1]) == "--test")
-		  test_filename = TEST_FILE;
-	 else if (string(argv[1]) == "--train")
-		  test_filename = TRAIN_FILE;
-	 else
-	 {
-		  cerr << "invalid option" << endl;
-		  return 0;
-	 }
-
 	 srand(time(NULL));
-	 Engine* engine = new Engine;
-	 engine->init_attr_descriptor(ATTR_DESCRIPTOR_FILE);
-	 engine->load_train_data(TRAIN_FILE);
-	 engine->build_tree();
-
-	 double accur = engine->test(test_filename);
-	 cout << "Before Pruning : " << endl;
-	 cout << "\tAccuracy : " << accur << endl;
-	 cout << "\tTree Size : " << engine->root->size() << endl;
-
-	 engine->pessimistic_error_prune(engine->root);
-
-	 accur = engine->test(test_filename);
-	 cout << "After Pruning : " << endl;
-	 cout << "\tAccuracy : " << accur << endl;
-	 cout << "\tTree Size : " << engine->root->size() << endl;
-
-	 engine->test_blackbox(BLACK_BOX_FEATURES, BLACK_BOX_RESULT_OUT);
-
-//	 engine->root->print(0);
-
-	 delete engine;
+	 
+	 task(5);
+	 task(50);
+	 task(100);
 }

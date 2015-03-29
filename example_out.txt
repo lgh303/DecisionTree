@@ -1,0 +1,80 @@
+5% of training set...
+	Round 1
+		Before Pruning : Accuracy = 0.832995 && Tree Size = 104
+		After  Pruning : Accuracy = 0.841699 && Tree Size = 27
+
+	Round 2
+		Before Pruning : Accuracy = 0.813232 && Tree Size = 48
+		After  Pruning : Accuracy = 0.813363 && Tree Size = 3
+
+	Round 3
+		Before Pruning : Accuracy = 0.805641 && Tree Size = 49
+		After  Pruning : Accuracy = 0.803874 && Tree Size = 2
+
+	Round 4
+		Before Pruning : Accuracy = 0.800079 && Tree Size = 61
+		After  Pruning : Accuracy = 0.802107 && Tree Size = 2
+
+	Round 5
+		Before Pruning : Accuracy = 0.826647 && Tree Size = 77
+		After  Pruning : Accuracy = 0.835809 && Tree Size = 25
+
+	Maximum : 
+		Before Pruning : 0.832995
+		After  Pruning : 0.841699
+	Minimum : 
+		Before Pruning : 0.800079
+		After  Pruning : 0.802107
+	Average : 
+		Before Pruning : 0.815719
+		After  Pruning : 0.81937
+
+
+50% of training set...
+	Round 1
+		Before Pruning : Accuracy = 0.841372 && Tree Size = 373
+		After  Pruning : Accuracy = 0.844709 && Tree Size = 26
+
+	Round 2
+		Before Pruning : Accuracy = 0.818206 && Tree Size = 192
+		After  Pruning : Accuracy = 0.816112 && Tree Size = 8
+
+	Round 3
+		Before Pruning : Accuracy = 0.842419 && Tree Size = 274
+		After  Pruning : Accuracy = 0.843531 && Tree Size = 25
+
+	Round 4
+		Before Pruning : Accuracy = 0.840063 && Tree Size = 230
+		After  Pruning : Accuracy = 0.839997 && Tree Size = 24
+
+	Round 5
+		Before Pruning : Accuracy = 0.841895 && Tree Size = 404
+		After  Pruning : Accuracy = 0.843793 && Tree Size = 26
+
+	Maximum : 
+		Before Pruning : 0.842419
+		After  Pruning : 0.844709
+	Minimum : 
+		Before Pruning : 0.818206
+		After  Pruning : 0.816112
+	Average : 
+		Before Pruning : 0.836791
+		After  Pruning : 0.837628
+
+
+100% of training set...
+	Round 1
+		Before Pruning : Accuracy = 0.845233 && Tree Size = 504
+		After  Pruning : Accuracy = 0.84556 && Tree Size = 31
+
+	Maximum : 
+		Before Pruning : 0.845233
+		After  Pruning : 0.84556
+	Minimum : 
+		Before Pruning : 0.845233
+		After  Pruning : 0.84556
+	Average : 
+		Before Pruning : 0.845233
+		After  Pruning : 0.84556
+
+2012011303.test.result Generated.
