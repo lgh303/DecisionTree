@@ -13,24 +13,39 @@ class Engine
 {
 public:
 	 const static int MAX_DEPTH = 100;
+
+	 Node* root;
+
 	 Engine();
+
 	 void init_attr_descriptor(const std::string&);
 	 void load_train_data(const std::string&);
+
 	 void build_tree();
 	 void pessimistic_error_prune(Node*);
+
 	 double test(const std::string&);
+	 void test_blackbox(const std::string&, const std::string&);
+	 double compare_result(const std::string&, const std::string&);
+
 	 int predict(Record*);
+
 	 ~Engine();
-	 Node* root;
+
 private:
+
 	 std::vector<Record*> records;
-	 std::vector<AttrDescriptor*> attr_descriptors;
+
 	 AttrDescriptor* goal_descriptor;
-	 Node* build_node(int, const std::vector<int>&, int, int);
+	 std::vector<AttrDescriptor*> attr_descriptors;
+
 	 std::vector<int> attr_set_indexes;
 	 int attr_set_count;
+
 	 double entropy(int, int);
 	 double calc_new_entropy(const vector< vector<int> >&, int, vector<int>&, vector<int>&, double&);
+	 Node* build_node(int, const std::vector<int>&, int, int);
+
 	 void set_threshold();
 	 bool on_prune_condition(Node*);
 };

@@ -388,3 +388,44 @@ bool Engine::on_prune_condition(Node* node)
 	 double se_err_T = sqrt(err_T * (n_t - err_T) / n_t);
 	 return err_t <= err_T + se_err_T;
 }
+
+void Engine::test_blackbox(const string& features_fin, const string& result_fout)
+{
+	 ifstream fin(features_fin.c_str());
+	 ofstream fout(result_fout.c_str());
+	 string line;
+	 while (fin)
+	 {
+		  getline(fin, line);
+		  if (line.size() <= 0) continue;
+		  Record* rec = new Record(line + ",@#$%.");
+		  int result = predict(rec);
+		  delete rec;
+		  if (result == 0)
+			   fout << GOAL_0 << "." << endl;
+		  else if (result == 1)
+			   fout << GOAL_1 << "." << endl;
+	 }
+	 fin.close();
+	 fout.close();
+}
+
+double Engine::compare_result(const string& std_filename, const string& out_filename)
+{
+	 ifstream std_fin(std_filename.c_str());
+	 ifstream out_fin(out_filename.c_str());
+	 string line_std, line_out;
+	 int correct_count = 0;
+	 int total_count = 0;
+	 while ((std_fin) && (out_fin))
+	 {
+		  ++total_count;
+		  getline(std_fin, line_std);
+		  getline(out_fin, line_out);
+		  if (line_std == line_out)
+			   ++correct_count;
+	 }
+	 std_fin.close();
+	 out_fin.close();
+	 return (double)correct_count / (double)total_count;
+}

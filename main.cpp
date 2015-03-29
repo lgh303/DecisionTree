@@ -13,8 +13,7 @@ const string ATTR_DESCRIPTOR_FILE = "data/adult.names";
 const string TRAIN_FILE = "data/adult.data";
 const string TEST_FILE = "data/adult.test";
 const string BLACK_BOX_FEATURES = "data/test.features";
-const string BLACK_BOX_RESULT_STD = "data/test.result.example";
-const string BLACK_BOX_RESULT_OUT = "2012011303.result.example";
+const string BLACK_BOX_RESULT_OUT = "2012011303.test.result";
 
 string GOAL_0, GOAL_1;
 
@@ -45,15 +44,22 @@ int main(int argc, char** argv)
 	 engine->init_attr_descriptor(ATTR_DESCRIPTOR_FILE);
 	 engine->load_train_data(TRAIN_FILE);
 	 engine->build_tree();
-//	 engine->root->print(0);
 
 	 double accur = engine->test(test_filename);
-	 cout << accur << ' ' << engine->root->size() << endl;
+	 cout << "Before Pruning : " << endl;
+	 cout << "\tAccuracy : " << accur << endl;
+	 cout << "\tTree Size : " << engine->root->size() << endl;
 
 	 engine->pessimistic_error_prune(engine->root);
 
 	 accur = engine->test(test_filename);
-	 cout << accur << ' ' << engine->root->size() << endl;
+	 cout << "After Pruning : " << endl;
+	 cout << "\tAccuracy : " << accur << endl;
+	 cout << "\tTree Size : " << engine->root->size() << endl;
+
+	 engine->test_blackbox(BLACK_BOX_FEATURES, BLACK_BOX_RESULT_OUT);
+
+//	 engine->root->print(0);
 
 	 delete engine;
 }
